@@ -21,7 +21,5 @@ if (Yii::$app->errorHandler->exception->statusCode) {
 <h2><?= Html::encode($this->title) ?></h2>
 
 <div class="alert alert-danger">
-    <?= nl2br(Html::encode($message)) ?>
+    <?= Html::encode($message) ?>
 </div>
-
-<p>The above error occurred while the Web server was processing your request.</p>

@@ -70,7 +70,7 @@ $this->registerJs($js, yii\web\View::POS_READY);
                     'id' => false,
                     'options' => ['class' => 'navbar-nav'],
                     'items' => [
-                        ['label' => Yii::t('app', 'Оборудование'), 'url' => ['machine/index']],
+                        ['label' => Yii::t('app', 'Оборудование'), 'url' => ['machine/list']],
                     ],
                 ]) ?>
             </div>
@@ -92,7 +92,7 @@ $this->registerJs($js, yii\web\View::POS_READY);
 
         <?= Alert::widget() ?>
 
-        <div class="wrapper">
+        <div class="<?= Yii::$app->controller->id . '-' . Yii::$app->controller->action->id ?> wrap">
             <?= $content ?>
         </div>
     </div>

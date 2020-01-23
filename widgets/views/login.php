@@ -41,18 +41,18 @@ $this->registerJs($js, yii\web\View::POS_READY);
 ]) ?>
 
 <?= $form->field($model, 'username', [
-    'options' => ['class' => 'wrap-field'],
+    'options' => ['class' => 'field'],
     'inputOptions' => ['placeholder' => $model->getAttributeLabel('username')],
 ]) ?>
 
 <?= $form->field($model, 'password', [
-    'options' => ['class' => 'wrap-field'],
+    'options' => ['class' => 'field'],
     'inputOptions' => ['placeholder' => $model->getAttributeLabel('password')],
 ])->passwordInput() ?>
 
 <?= Toggle::widget(['model' => $model, 'attribute' => 'remember_me']) ?>
 
-<div class="flex-end wrap-submit">
+<div class="modal-submit flex-end">
     <?= Html::button(Yii::t('app', 'Отмена'), ['class' => 'form-button muted', 'data-dismiss' => 'modal']) ?>
     <?= Html::submitButton(Yii::t('app', 'Войти'), ['class' => 'form-button ml-2']) ?>
 </div>

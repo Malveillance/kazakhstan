@@ -40,7 +40,7 @@ $this->registerJs($js, yii\web\View::POS_READY);
 ]) ?>
 
 <?= $form->field($model, 'current', [
-    'options' => ['class' => 'wrap-field'],
+    'options' => ['class' => 'field'],
     'inputOptions' => ['placeholder' => $model->getAttributeLabel('current')],
 ])->passwordInput() ?>
 
@@ -49,7 +49,7 @@ $this->registerJs($js, yii\web\View::POS_READY);
     'inputOptions' => ['placeholder' => $model->getAttributeLabel('new')],
 ])->passwordInput() ?>
 
-<div class="flex-end wrap-submit">
+<div class="modal-submit flex-end">
     <?= Html::button(Yii::t('app', 'Отмена'), ['class' => 'form-button muted', 'data-dismiss' => 'modal']) ?>
     <?= Html::submitButton(Yii::t('app', 'Сохранить'), ['class' => 'form-button ml-2']) ?>
 </div>

@@ -16,7 +16,7 @@ $tClose = Yii::t('app', 'Закрыть (Esc)');
 $tLoading = Yii::t('app', 'Загрузка...');
 $tError = Yii::t('app', 'Ошибка при загрузке изображения.');
 
-$maxImageSize = app\models\Machine::MAX_IMAGE_SIZE * 1048576;
+$maxImageSize = $model::MAX_IMAGE_SIZE * 1048576;
 
 $blankImage = Url::toRoute('images/site/blank.png', true);
 
@@ -32,15 +32,15 @@ $('#laser-count').change(function() {
     }
 });
 
-$('#machine-upload').change(function() {
+$('#machine-image').change(function() {
     var blob = this.files[0];
 
     if (blob && (blob.size < $maxImageSize) && (blob.type == 'image/jpeg' || blob.type == 'image/png')) {
-        $('#upload-image img').attr('src', URL.createObjectURL(blob));
-        $('#upload-button').removeAttr('disabled');
+        $('#preview-image').attr('src', URL.createObjectURL(blob));
+        $('#upload-image').removeAttr('disabled');
     } else {
-        $('#upload-button').prop('disabled', true);
-        $('#upload-image img').attr('src', '$blankImage');
+        $('#upload-image').prop('disabled', true);
+        $('#preview-image').attr('src', '$blankImage');
     }
 });
 
@@ -50,7 +50,7 @@ var deleteGalleryItem = function() {
 };
 
 var createGalleryItem = function(r) {
-    $('<div/>', { class: 'item' }).appendTo('#gallery').append(
+    $('<div/>', { class: 'item' }).appendTo('.section-gallery .wrap').append(
         $('<a/>', { href: r.imageUrl }).append(
             $('<img>', { src: r.thumbUrl, title: r.title })
         ).magnificPopup({ type: 'image', closeOnContentClick: true, tClose: '$tClose', tLoading: '$tLoading', image: { cursor: false, tError: '$tError' }}),
@@ -58,17 +58,17 @@ var createGalleryItem = function(r) {
         $('<input>', { type: 'hidden', name: 'Machine[raw_images][]', value: r.value })
     );
 
-    URL.revokeObjectURL($('#upload-image img').attr('src'));
+    URL.revokeObjectURL($('#preview-image').attr('src'));
 };
 
-$('#upload-button').click(function() {
-    var blob = $('#machine-upload').prop('files')[0];
+$('#upload-image').click(function() {
+    var blob = $('#machine-image').prop('files')[0];
     if (!blob) return;
 
     $(this).prop('disabled', true).addClass('spin');
 
     var data = new FormData();
-    data.append('Machine[upload]', blob);
+    data.append('Machine[image]', blob);
 
     $.ajax({
         type: 'POST',
@@ -79,18 +79,19 @@ $('#upload-button').click(function() {
         contentType: false,
         dataType: 'json',
         success: createGalleryItem,
-        complete: function() { setTimeout(() => { $('#upload-button').removeClass('spin'); }, 200); }
+        complete: function() { setTimeout(() => { $('#upload-image').removeClass('spin'); }, 200); }
     });
 });
 
-$('#gallery a').magnificPopup({ type: 'image', closeOnContentClick: true, tClose: '$tClose', tLoading: '$tLoading', image: { cursor: false, tError: '$tError' }});
+$('.section-gallery .item a').magnificPopup({ type: 'image', closeOnContentClick: true, tClose: '$tClose', tLoading: '$tLoading', image: { cursor: false, tError: '$tError' }});
 
-$('#gallery button').click(deleteGalleryItem);
+$('.section-gallery .item button').click(deleteGalleryItem);
 JS;
 
 $this->registerJs($js, yii\web\View::POS_READY);
 
-$this->params['breadcrumbs'][] = ['label' => '<span class="ml-auto">' . $model->getAttributeLabel('draft') . '</span>'];
+$this->params['breadcrumbs'][] = ['label' => '<span class="spacer"></span>'];
+$this->params['breadcrumbs'][] = ['label' => '<span>' . $model->getAttributeLabel('draft') . '</span>'];
 $this->params['breadcrumbs'][] = ['label' => Toggle::widget(['model' => $model, 'attribute' => 'draft', 'enableLabel' => false, 'form' => 'form-machine'])];
 ?>
 
@@ -113,23 +114,23 @@ $this->params['breadcrumbs'][] = ['label' => Toggle::widget(['model' => $model, 
         <div class="section">
             <h5><?= Yii::t('app', 'Общая информация') ?></h5>
             <div class="row">
-                <div class="col-12 wrap-field">
+                <div class="col-12 field">
                     <?= $form->field($model, 'name')->textInput(['class' => 'form-control form-control-lg', 'autofocus' => true, 'maxlength' => true]) ?>
                 </div>
 
-                <div class="col-6 wrap-field">
+                <div class="col-6 field">
                     <?= $form->field($model, 'rev')->textInput(['maxlength' => true]) ?>
                 </div>
 
-                <div class="col-6 wrap-field">
+                <div class="col-6 field">
                     <?= $form->field($model, 'process')->dropDownList($model->select->process) ?>
                 </div>
 
-                <div class="col-12 wrap-field">
+                <div class="col-12 field">
                     <?= $form->field($model, 'manufacturer')->textInput(['maxlength' => true]) ?>
                 </div>
 
-                <div class="col-12 wrap-field">
+                <div class="col-12 field">
                     <?= $form->field($model, 'manufacturer_url')->textInput(['maxlength' => true]) ?>
                 </div>
 
@@ -142,20 +143,20 @@ $this->params['breadcrumbs'][] = ['label' => Toggle::widget(['model' => $model, 
         <div class="section">
             <h5><?= Yii::t('app', 'Параметры зоны построения') ?></h5>
             <div class="row">
-                <div class="col-6 wrap-field">
-                    <?= $form->field($model, 'build_platform_x') ?>
+                <div class="col-6 field">
+                    <?= $form->field($model, 'build_x') ?>
                 </div>
 
-                <div class="col-6 wrap-field">
-                    <?= $form->field($model, 'build_platform_y') ?>
+                <div class="col-6 field">
+                    <?= $form->field($model, 'build_y') ?>
                 </div>
 
-                <div class="col-6 wrap-field">
-                    <?= $form->field($model, 'build_platform_z') ?>
+                <div class="col-6 field">
+                    <?= $form->field($model, 'build_z') ?>
                 </div>
 
-                <div class="col-6 wrap-field">
-                    <?= $form->field($model, 'build_platform_d') ?>
+                <div class="col-6 field">
+                    <?= $form->field($model, 'build_d') ?>
                 </div>
 
                 <div class="col-12">
@@ -164,16 +165,14 @@ $this->params['breadcrumbs'][] = ['label' => Toggle::widget(['model' => $model, 
                         'attribute' => 'build_heat',
                         'options' => [
                             'data-toggle' => 'collapse',
-                            'data-target' => '#build-heat-collapse',
-                            'aria-expanded' => $model->build_heat ? 'true' : 'false',
-                            'aria-controls' => 'build-heat-collapse',
+                            'data-target' => '.row-build-heat',
                         ],
                     ]) ?>
                 </div>
             </div>
 
-            <div id="build-heat-collapse" class="row collapse<?= $model->build_heat ? ' show' : '' ?>">
-                <div class="col-6 wrap-field wrap-collapse">
+            <div class="row row-build-heat collapse<?= $model->build_heat ? ' show' : '' ?>">
+                <div class="col-6 field">
                     <?= $form->field($model, 'build_heat_t_max') ?>
                 </div>
 
@@ -186,7 +185,7 @@ $this->params['breadcrumbs'][] = ['label' => Toggle::widget(['model' => $model, 
         <div class="section">
             <h5><?= Yii::t('app', 'Характеристики лазера') ?></h5>
             <div class="row">
-                <div class="col-12 wrap-field">
+                <div class="col-12 field">
                     <?= $form->field($model, 'laser_type')->dropDownList($model->select->laser_type) ?>
                 </div>
 
@@ -205,8 +204,8 @@ $this->params['breadcrumbs'][] = ['label' => Toggle::widget(['model' => $model, 
                 $content[] = Html::beginTag('div', ['id' => 'laser-' . $i, 'style' => $model->laser_count < $i ? 'display: none;' : '']);
                 $content[] = Html::tag('p', Yii::t('app', 'Лазер') . ' ' . $i, ['class' => 'h7']);
                 $content[] = Html::beginTag('div', ['class' => 'row']);
-                $content[] = Html::tag('div', $form->field($model, 'laser' . $i . '_power'), ['class' => 'col-6 wrap-field']);
-                $content[] = Html::tag('div', $form->field($model, 'laser' . $i . '_d'), ['class' => 'col-6 wrap-field']);
+                $content[] = Html::tag('div', $form->field($model, 'laser' . $i . '_power'), ['class' => 'col-6 field']);
+                $content[] = Html::tag('div', $form->field($model, 'laser' . $i . '_d'), ['class' => 'col-6 field']);
                 $content[] = Html::tag('div', $form->field($model, 'laser' . $i . '_wl')->textInput(['placeholder' => '0.00']), ['class' => 'col-6']);
                 $content[] = Html::endTag('div');
                 $content[] = Html::endTag('div');
@@ -219,15 +218,15 @@ $this->params['breadcrumbs'][] = ['label' => Toggle::widget(['model' => $model, 
         <div class="section">
             <h5><?= Yii::t('app', 'Производительность процесса') ?></h5>
             <div class="row">
-                <div class="col-6 wrap-field">
-                    <?= $form->field($model, 'layer_thickness_min') ?>
+                <div class="col-6 field">
+                    <?= $form->field($model, 'layer_min') ?>
                 </div>
 
-                <div class="col-6 wrap-field">
-                    <?= $form->field($model, 'layer_thickness_max') ?>
+                <div class="col-6 field">
+                    <?= $form->field($model, 'layer_max') ?>
                 </div>
 
-                <div class="col-12 wrap-field">
+                <div class="col-12 field">
                     <?= $form->field($model, 'scan_speed_max') ?>
                 </div>
 
@@ -240,16 +239,16 @@ $this->params['breadcrumbs'][] = ['label' => Toggle::widget(['model' => $model, 
         <div class="section">
             <h5><?= Yii::t('app', 'Габариты оборудования') ?></h5>
             <div class="row">
-                <div class="col-6 wrap-field">
-                    <?= $form->field($model, 'dimension_l') ?>
+                <div class="col-6 field">
+                    <?= $form->field($model, 'dim_base_l') ?>
                 </div>
 
-                <div class="col-6 wrap-field">
-                    <?= $form->field($model, 'dimension_w') ?>
+                <div class="col-6 field">
+                    <?= $form->field($model, 'dim_base_w') ?>
                 </div>
 
                 <div class="col-6">
-                    <?= $form->field($model, 'dimension_h') ?>
+                    <?= $form->field($model, 'dim_base_h') ?>
                 </div>
 
                 <div class="col-6">
@@ -261,16 +260,16 @@ $this->params['breadcrumbs'][] = ['label' => Toggle::widget(['model' => $model, 
         <div class="section">
             <h5><?= Yii::t('app', 'Габариты установленного оборудования') ?></h5>
             <div class="row">
-                <div class="col-6 wrap-field">
-                    <?= $form->field($model, 'dimension_inst_l') ?>
+                <div class="col-6 field">
+                    <?= $form->field($model, 'dim_inst_l') ?>
                 </div>
 
-                <div class="col-6 wrap-field">
-                    <?= $form->field($model, 'dimension_inst_w') ?>
+                <div class="col-6 field">
+                    <?= $form->field($model, 'dim_inst_w') ?>
                 </div>
 
                 <div class="col-6">
-                    <?= $form->field($model, 'dimension_inst_h') ?>
+                    <?= $form->field($model, 'dim_inst_h') ?>
                 </div>
             </div>
         </div>
@@ -278,16 +277,16 @@ $this->params['breadcrumbs'][] = ['label' => Toggle::widget(['model' => $model, 
         <div class="section">
             <h5><?= Yii::t('app', 'Транспортные габариты') ?></h5>
             <div class="row">
-                <div class="col-6 wrap-field">
-                    <?= $form->field($model, 'dimension_tran_l') ?>
+                <div class="col-6 field">
+                    <?= $form->field($model, 'dim_tran_l') ?>
                 </div>
 
-                <div class="col-6 wrap-field">
-                    <?= $form->field($model, 'dimension_tran_w') ?>
+                <div class="col-6 field">
+                    <?= $form->field($model, 'dim_tran_w') ?>
                 </div>
 
                 <div class="col-6">
-                    <?= $form->field($model, 'dimension_tran_h') ?>
+                    <?= $form->field($model, 'dim_tran_h') ?>
                 </div>
             </div>
         </div>
@@ -295,19 +294,19 @@ $this->params['breadcrumbs'][] = ['label' => Toggle::widget(['model' => $model, 
         <div class="section">
             <h5><?= Yii::t('app', 'Электроподключение') ?></h5>
             <div class="row">
-                <div class="col-12 wrap-field">
+                <div class="col-12 field">
                     <?= $form->field($model, 'mains_connection')->textInput(['maxlength' => true]) ?>
                 </div>
 
-                <div class="col-12 wrap-field">
+                <div class="col-12 field">
                     <?= $form->field($model, 'voltage') ?>
                 </div>
 
-                <div class="col-12 wrap-field">
+                <div class="col-12 field">
                     <?= $form->field($model, 'frequency') ?>
                 </div>
 
-                <div class="col-12 wrap-field">
+                <div class="col-12 field">
                     <?= $form->field($model, 'power_cons') ?>
                 </div>
 
@@ -320,7 +319,7 @@ $this->params['breadcrumbs'][] = ['label' => Toggle::widget(['model' => $model, 
         <div class="section">
             <h5><?= Yii::t('app', 'Подключение защитного газа') ?></h5>
             <div class="row">
-                <div class="col-6 wrap-field">
+                <div class="col-6 field">
                     <?= $form->field($model, 'raw_gas_type')->checkboxList($model->select->gas_type, ['item' => function($index, $label, $name, $checked, $value) {
                         $id = 'gas-type-' . ($index + 1);
 
@@ -333,19 +332,19 @@ $this->params['breadcrumbs'][] = ['label' => Toggle::widget(['model' => $model, 
                     }]) ?>
                 </div>
 
-                <div class="col-6 wrap-field">
+                <div class="col-6 field">
                     <?= $form->field($model, 'gas_purity')->textInput(['maxlength' => true]) ?>
                 </div>
 
-                <div class="col-12 wrap-field">
+                <div class="col-12 field">
                     <?= $form->field($model, 'gas_cons_min') ?>
                 </div>
 
-                <div class="col-12 wrap-field">
-                    <?= $form->field($model, 'gas_pressure_min') ?>
+                <div class="col-12 field">
+                    <?= $form->field($model, 'gas_pres_min') ?>
                 </div>
 
-                <div class="col-12 wrap-field">
+                <div class="col-12 field">
                     <?= $form->field($model, 'gas_cons_purge') ?>
                 </div>
 
@@ -375,15 +374,15 @@ $this->params['breadcrumbs'][] = ['label' => Toggle::widget(['model' => $model, 
     </div>
 
     <div class="col-12 col-sm-6 pane">
-        <div class="section">
+        <div class="section section-upload-image">
             <h5><?= Yii::t('app', 'Загрузить изображение') ?></h5>
-            <div id="upload-image">
-                <?= Html::img($blankImage, ['class' => 'mx-auto']) ?>
+            <div class="wrap">
+                <?= Html::img($blankImage, ['id' => 'preview-image', 'alt' => false]) ?>
 
-                <div class="field-machine-upload wrap-upload">
+                <div class="field-machine-image">
                     <div class="file-input">
-                        <?= $form->field($model, 'upload', [
-                            'template' => "{hint}\n{input}\n{label}\n<button type=\"button\" id=\"upload-button\" class=\"field-button\" disabled>" . Yii::t('app', 'Загрузить') . "</button>\n{error}",
+                        <?= $form->field($model, 'image', [
+                            'template' => "{hint}\n{input}\n{label}\n<button type=\"button\" id=\"upload-image\" class=\"field-button\" disabled>" . Yii::t('app', 'Загрузить') . "</button>\n{error}",
                             'labelOptions' => ['class' => 'field-button', 'role' => 'button'],
                             'options' => ['tag' => false],
                             'enableError' => true,
@@ -393,10 +392,10 @@ $this->params['breadcrumbs'][] = ['label' => Toggle::widget(['model' => $model, 
             </div>
         </div>
 
-        <div class="section">
+        <div class="section section-gallery">
             <h5><?= Yii::t('app', 'Галерея') ?></h5>
             <input type="hidden" name="Machine[raw_images]" value="">
-            <div id="gallery" data-content="<?= Yii::t('app', 'Нет добавленных элементов') ?>"><?php
+            <div class="wrap" data-content="<?= Yii::t('app', 'Нет добавленных элементов') ?>"><?php
                 if (!empty($model->raw_images)) foreach ($model->raw_images as $filename) {
                     $path = Yii::$app->params['uploadsPath'] . $filename;
                     $thumbpath = Yii::$app->params['thumbsPath'] . $filename;

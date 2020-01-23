@@ -13,6 +13,8 @@ use yii\helpers\Url;
 
 class MachineController extends \yii\web\Controller
 {
+    public $defaultAction = 'list';
+
     /**
      * {@inheritdoc}
      */
@@ -46,7 +48,7 @@ class MachineController extends \yii\web\Controller
      */
     public function actionUploadImage()
     {
-        $file = UploadedFile::getInstanceByName('Machine[upload]');
+        $file = UploadedFile::getInstanceByName('Machine[image]');
 
         $filename = time() . '_' . substr(md5($file->baseName), 0, 16) . '.' . (($file->extension == 'jpeg') ? 'jpg' : $file->extension);
 
@@ -70,9 +72,9 @@ class MachineController extends \yii\web\Controller
      * Lists all Machine models.
      * @return mixed
      */
-    public function actionIndex()
+    public function actionList()
     {
-        return $this->render('index', [
+        return $this->render('list', [
             'model' => Machine::find()->select('name, id')->orderBy('name ASC')->all(),
         ]);
     }
@@ -138,7 +140,7 @@ class MachineController extends \yii\web\Controller
 
     /**
      * Deletes an existing Machine model.
-     * If deletion is successful, the browser will be redirected to the 'index' page.
+     * If deletion is successful, the browser will be redirected to the 'list' page.
      * @param integer $id
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
@@ -147,7 +149,7 @@ class MachineController extends \yii\web\Controller
     {
         $this->findModel($id)->delete();
 
-        return $this->redirect(['index']);
+        return $this->redirect(['list']);
     }
 
     /**

@@ -21,10 +21,10 @@ use yii\behaviors\TimestampBehavior;
  * @property string $agent
  * @property string $agent_url
  * @property int $process
- * @property int|null $build_platform_d
- * @property int|null $build_platform_x
- * @property int|null $build_platform_y
- * @property int|null $build_platform_z
+ * @property int|null $build_d
+ * @property int|null $build_x
+ * @property int|null $build_y
+ * @property int|null $build_z
  * @property int $build_heat
  * @property int|null $build_heat_t_max
  * @property string $build_heat_desc
@@ -42,20 +42,20 @@ use yii\behaviors\TimestampBehavior;
  * @property int|null $laser4_power
  * @property int|null $laser4_d
  * @property int|null $laser4_wl
- * @property int|null $layer_thickness_min
- * @property int|null $layer_thickness_max
+ * @property int|null $layer_min
+ * @property int|null $layer_max
  * @property int|null $scan_speed_max
  * @property int|null $performance
- * @property int|null $dimension_l
- * @property int|null $dimension_w
- * @property int|null $dimension_h
+ * @property int|null $dim_base_l
+ * @property int|null $dim_base_w
+ * @property int|null $dim_base_h
  * @property int|null $weight
- * @property int|null $dimension_inst_l
- * @property int|null $dimension_inst_w
- * @property int|null $dimension_inst_h
- * @property int|null $dimension_tran_l
- * @property int|null $dimension_tran_w
- * @property int|null $dimension_tran_h
+ * @property int|null $dim_inst_l
+ * @property int|null $dim_inst_w
+ * @property int|null $dim_inst_h
+ * @property int|null $dim_tran_l
+ * @property int|null $dim_tran_w
+ * @property int|null $dim_tran_h
  * @property string $mains_connection
  * @property int|null $voltage
  * @property int|null $frequency
@@ -66,7 +66,7 @@ use yii\behaviors\TimestampBehavior;
  * @property int|null $gas_cons_min
  * @property int|null $gas_cons_purge
  * @property int|null $gas_cons_build
- * @property int|null $gas_pressure_min
+ * @property int|null $gas_pres_min
  * @property string $connection_type
  * @property string $cnc_system
  * @property string $images
@@ -77,7 +77,7 @@ class Machine extends \yii\db\ActiveRecord
 
     public $select;
 
-    public $upload;
+    public $image;
 
     public $raw_gas_type;
     public $raw_images;
@@ -107,16 +107,15 @@ class Machine extends \yii\db\ActiveRecord
     {
         return [
             ['name', 'required'],
-            ['upload', 'image', 'extensions' => 'png, jpg, jpeg', 'maxSize' => self::MAX_IMAGE_SIZE * 1048576, 'tooBig' => 'Файл "{file}" слишком большой. Размер не должен превышать ' . self::MAX_IMAGE_SIZE . ' Мб.'],
+            ['image', 'image', 'extensions' => 'png, jpg, jpeg', 'maxSize' => self::MAX_IMAGE_SIZE * 1048576, 'tooBig' => 'Файл "{file}" слишком большой. Размер не должен превышать ' . self::MAX_IMAGE_SIZE . ' Мб.'],
             [['name', 'rev', 'manufacturer', 'agent', 'mains_connection', 'gas_purity', 'connection_type', 'cnc_system'], 'string', 'max' => 255],
             [['build_heat_desc', 'gas_type', 'images'], 'string'],
             [['manufacturer_url', 'agent_url'], 'url', 'defaultScheme' => 'http'],
-            [['created_by', 'process', 'manufacturer_country', 'build_platform_d', 'build_platform_x', 'build_platform_y', 'build_platform_z',
-                'build_heat_t_max', 'laser_type', 'laser1_power', 'laser1_d', 'laser2_power', 'laser2_d', 'laser3_power', 'laser3_d',
-                'laser4_power', 'laser4_d', 'layer_thickness_min', 'layer_thickness_max', 'scan_speed_max',
-                'dimension_l', 'dimension_w', 'dimension_h', 'weight', 'dimension_inst_l', 'dimension_inst_w', 'dimension_inst_h',
-                'dimension_tran_l', 'dimension_tran_w', 'dimension_tran_h', 'voltage', 'frequency', 'power_cons', 'mains_fuse',
-                'gas_cons_min', 'gas_cons_purge', 'gas_cons_build', 'gas_pressure_min'], 'integer'],
+            [['created_by', 'process', 'manufacturer_country', 'build_d', 'build_x', 'build_y', 'build_z', 'build_heat_t_max',
+                'laser_type', 'laser1_power', 'laser1_d', 'laser2_power', 'laser2_d', 'laser3_power', 'laser3_d', 'laser4_power', 'laser4_d',
+                'layer_min', 'layer_max', 'scan_speed_max', 'dim_base_l', 'dim_base_w', 'dim_base_h', 'weight',
+                'dim_inst_l', 'dim_inst_w', 'dim_inst_h', 'dim_tran_l', 'dim_tran_w', 'dim_tran_h',
+                'voltage', 'frequency', 'power_cons', 'mains_fuse', 'gas_cons_min', 'gas_cons_purge', 'gas_cons_build', 'gas_pres_min'], 'integer'],
             [['laser1_wl', 'laser2_wl', 'laser3_wl', 'laser4_wl', 'performance'], 'number'],
             ['laser_count', 'integer', 'min' => 1, 'max' => 4],
             [['draft', 'build_heat'], 'boolean'],
@@ -194,7 +193,7 @@ class Machine extends \yii\db\ActiveRecord
         clearstatcache();
 
         $size = filesize($path);
-        $dimensions = getimagesize($path);
+        $dims = getimagesize($path);
 
         $i = min(floor(log($size, 1024)), 2);
 
@@ -204,7 +203,7 @@ class Machine extends \yii\db\ActiveRecord
             Yii::t('unit', 'МБ'),
         ];
 
-        $info[] = Yii::t('app', 'Разрешение: {w} х {h}', ['w' => $dimensions[0], 'h' => $dimensions[1]]);
+        $info[] = Yii::t('app', 'Разрешение: {w} х {h}', ['w' => $dims[0], 'h' => $dims[1]]);
         $info[] = Yii::t('app', 'Размер: {s} {u}', ['s' => round($size / pow(1024, $i), ($i < 2) ? 0 : 1), 'u' => $units[$i]]);
 
         return implode(PHP_EOL, $info);
@@ -225,41 +224,41 @@ class Machine extends \yii\db\ActiveRecord
             'agent' => Yii::t('app', 'Представитель в России'),
             'agent_url' => Yii::t('app', 'Сайт представителя'),
             'process' => Yii::t('app', 'Процесс'),
-            'build_platform_d' => Yii::t('app', 'Диаметр'),
-            'build_platform_x' => Yii::t('app', 'Длина'),
-            'build_platform_y' => Yii::t('app', 'Ширина'),
-            'build_platform_z' => Yii::t('app', 'Высота'),
+            'build_d' => Yii::t('app', 'Диаметр'),
+            'build_x' => Yii::t('app', 'Длина'),
+            'build_y' => Yii::t('app', 'Ширина'),
+            'build_z' => Yii::t('app', 'Высота'),
             'build_heat' => Yii::t('app', 'Подогрев зоны построения'),
             'build_heat_t_max' => Yii::t('app', 'Макс. температура'),
             'build_heat_desc' => Yii::t('app', 'Описание системы подогрева'),
             'laser_type' => Yii::t('app', 'Тип лазера'),
             'laser_count' => Yii::t('app', 'Количество лазеров'),
-            'laser1_power' => Yii::t('app', 'Мощность'),
+            'laser1_power' => Yii::t('app', 'Мощность лазера'),
             'laser1_d' => Yii::t('app', 'Фокусный диаметр'),
             'laser1_wl' => Yii::t('app', 'Длина волны'),
-            'laser2_power' => Yii::t('app', 'Мощность'),
+            'laser2_power' => Yii::t('app', 'Мощность лазера'),
             'laser2_d' => Yii::t('app', 'Фокусный диаметр'),
             'laser2_wl' => Yii::t('app', 'Длина волны'),
-            'laser3_power' => Yii::t('app', 'Мощность'),
+            'laser3_power' => Yii::t('app', 'Мощность лазера'),
             'laser3_d' => Yii::t('app', 'Фокусный диаметр'),
             'laser3_wl' => Yii::t('app', 'Длина волны'),
-            'laser4_power' => Yii::t('app', 'Мощность'),
+            'laser4_power' => Yii::t('app', 'Мощность лазера'),
             'laser4_d' => Yii::t('app', 'Фокусный диаметр'),
             'laser4_wl' => Yii::t('app', 'Длина волны'),
-            'layer_thickness_min' => Yii::t('app', 'Мин. толщина слоя'),
-            'layer_thickness_max' => Yii::t('app', 'Макс. толщина слоя'),
+            'layer_min' => Yii::t('app', 'Мин. толщина слоя'),
+            'layer_max' => Yii::t('app', 'Макс. толщина слоя'),
             'scan_speed_max' => Yii::t('app', 'Макс. скорость сканирования'),
             'performance' => Yii::t('app', 'Производительность процесса'),
-            'dimension_l' => Yii::t('app', 'Длина'),
-            'dimension_w' => Yii::t('app', 'Ширина'),
-            'dimension_h' => Yii::t('app', 'Высота'),
+            'dim_base_l' => Yii::t('app', 'Длина'),
+            'dim_base_w' => Yii::t('app', 'Ширина'),
+            'dim_base_h' => Yii::t('app', 'Высота'),
             'weight' => Yii::t('app', 'Масса'),
-            'dimension_inst_l' => Yii::t('app', 'Длина'),
-            'dimension_inst_w' => Yii::t('app', 'Ширина'),
-            'dimension_inst_h' => Yii::t('app', 'Высота'),
-            'dimension_tran_l' => Yii::t('app', 'Длина'),
-            'dimension_tran_w' => Yii::t('app', 'Ширина'),
-            'dimension_tran_h' => Yii::t('app', 'Высота'),
+            'dim_inst_l' => Yii::t('app', 'Длина'),
+            'dim_inst_w' => Yii::t('app', 'Ширина'),
+            'dim_inst_h' => Yii::t('app', 'Высота'),
+            'dim_tran_l' => Yii::t('app', 'Длина'),
+            'dim_tran_w' => Yii::t('app', 'Ширина'),
+            'dim_tran_h' => Yii::t('app', 'Высота'),
             'mains_connection' => Yii::t('app', 'Сеть'),
             'voltage' => Yii::t('app', 'Номинальное напряжение'),
             'frequency' => Yii::t('app', 'Частота'),
@@ -270,10 +269,10 @@ class Machine extends \yii\db\ActiveRecord
             'gas_cons_min' => Yii::t('app', 'Мин. расход на один рабочий цикл'),
             'gas_cons_purge' => Yii::t('app', 'Расход во время продувки'),
             'gas_cons_build' => Yii::t('app', 'Расход во время построения'),
-            'gas_pressure_min' => Yii::t('app', 'Мин. давление на входе'),
+            'gas_pres_min' => Yii::t('app', 'Мин. давление на входе'),
             'connection_type' => Yii::t('app', 'Интерфейс подключения'),
             'cnc_system' => Yii::t('app', 'Система ЧПУ'),
-            'upload' => Yii::t('app', 'Выбрать файл'),
+            'image' => Yii::t('app', 'Выбрать файл'),
         ];
     }
 
@@ -283,10 +282,10 @@ class Machine extends \yii\db\ActiveRecord
     public function attributeHints()
     {
         return [
-            'build_platform_d' => Yii::t('unit', 'мм'),
-            'build_platform_x' => Yii::t('unit', 'мм'),
-            'build_platform_y' => Yii::t('unit', 'мм'),
-            'build_platform_z' => Yii::t('unit', 'мм'),
+            'build_d' => Yii::t('unit', 'мм'),
+            'build_x' => Yii::t('unit', 'мм'),
+            'build_y' => Yii::t('unit', 'мм'),
+            'build_z' => Yii::t('unit', 'мм'),
             'build_heat_t_max' => Yii::t('unit', '°C'),
             'laser1_power' => Yii::t('unit', 'Вт'),
             'laser1_d' => Yii::t('unit', 'мкм'),
@@ -300,20 +299,20 @@ class Machine extends \yii\db\ActiveRecord
             'laser4_power' => Yii::t('unit', 'Вт'),
             'laser4_d' => Yii::t('unit', 'мкм'),
             'laser4_wl' => Yii::t('unit', 'мкм'),
-            'layer_thickness_min' => Yii::t('unit', 'мкм'),
-            'layer_thickness_max' => Yii::t('unit', 'мкм'),
+            'layer_min' => Yii::t('unit', 'мкм'),
+            'layer_max' => Yii::t('unit', 'мкм'),
             'scan_speed_max' => Yii::t('unit', 'м/с'),
             'performance' => Yii::t('unit', 'см³/ч'),
-            'dimension_l' => Yii::t('unit', 'мм'),
-            'dimension_w' => Yii::t('unit', 'мм'),
-            'dimension_h' => Yii::t('unit', 'мм'),
+            'dim_base_l' => Yii::t('unit', 'мм'),
+            'dim_base_w' => Yii::t('unit', 'мм'),
+            'dim_base_h' => Yii::t('unit', 'мм'),
             'weight' => Yii::t('unit', 'кг'),
-            'dimension_inst_l' => Yii::t('unit', 'мм'),
-            'dimension_inst_w' => Yii::t('unit', 'мм'),
-            'dimension_inst_h' => Yii::t('unit', 'мм'),
-            'dimension_tran_l' => Yii::t('unit', 'мм'),
-            'dimension_tran_w' => Yii::t('unit', 'мм'),
-            'dimension_tran_h' => Yii::t('unit', 'мм'),
+            'dim_inst_l' => Yii::t('unit', 'мм'),
+            'dim_inst_w' => Yii::t('unit', 'мм'),
+            'dim_inst_h' => Yii::t('unit', 'мм'),
+            'dim_tran_l' => Yii::t('unit', 'мм'),
+            'dim_tran_w' => Yii::t('unit', 'мм'),
+            'dim_tran_h' => Yii::t('unit', 'мм'),
             'voltage' => Yii::t('unit', 'В'),
             'frequency' => Yii::t('unit', 'Гц'),
             'power_cons' => Yii::t('unit', 'Вт'),
@@ -321,7 +320,7 @@ class Machine extends \yii\db\ActiveRecord
             'gas_cons_min' => Yii::t('unit', 'л'),
             'gas_cons_purge' => Yii::t('unit', 'л/мин'),
             'gas_cons_build' => Yii::t('unit', 'л/мин'),
-            'gas_pressure_min' => Yii::t('unit', 'бар'),
+            'gas_pres_min' => Yii::t('unit', 'бар'),
         ];
     }
 }

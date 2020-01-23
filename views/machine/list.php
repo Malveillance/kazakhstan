@@ -16,7 +16,7 @@ if (!Yii::$app->user->isGuest) {
     $this->params['breadcrumbs'][] = ['label' => Html::a(Yii::t('app', 'Добавить'), ['add'], ['role' => 'button', 'class' => 'bread-button'])];
 }
 ?>
-<ul class="machine-list">
+<ul class="list">
     <?php foreach ($model as $item) {
         $current = mb_substr($item->name, 0, 1);
         if ($current != $letter) $content[] = '<li class="initial">' . ($letter = $current) . '</li>';
